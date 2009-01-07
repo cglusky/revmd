@@ -1,0 +1,31 @@
+Unless otherwise specified everything in here is GPL
+
+This is a work in progress
+
+A Reverse Markdown Filter for Drupal
+
+Use Case
+
+Two way email integration is possible with Drupal using
+-  Mailhandler
+-  Mail2Web
+-  Messaging
+-  Notification
+
+-  The Messaging module comes with two plain text filters, one of which uses Drupal core's
+   drupal_html_to_text http://api.drupal.org/api/function/drupal_html_to_text/6 which is a close
+   solution to what we are going to do here.  That function will be provide the framework for
+   this filter module.  It's very close - We just need to tweak it to provide Markdown syntax
+
+-  Drupal has a Markdown Filter Module for incoming email, but we need to be able to convert HTML
+   back to Markdown for outbound emails.
+
+-  This is largely to keep things consistent between input and output.
+
+-  Apply this filter to outbound emails in the Messaging Module or use it elsewhere if it helps.
+
+Due credit to all the great people who work in the Drupal Community as well as
+John Gruber at Daring Fireball  http://daringfireball.net/projects/markdown/
+for Markdown in the first place.
+
+
