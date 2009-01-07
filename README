@@ -1,10 +1,10 @@
 Unless otherwise specified everything in here is GPL
 
-This is a work in progress
+This is a work in progress  NOT WORKING YET
 
 A Reverse Markdown Filter for Drupal
 
-Use Case
+Use Case - Enable Two-Way PLAIN TEXT email integration and support Markdown both inbound and outbound
 
 Two way email integration is possible with Drupal using
 -  Mailhandler
@@ -17,10 +17,12 @@ Two way email integration is possible with Drupal using
    solution to what we are going to do here.  That function will be provide the framework for
    this filter module.  It's very close - We just need to tweak it to provide Markdown syntax
 
--  Drupal has a Markdown Filter Module for incoming email, but we need to be able to convert HTML
-   back to Markdown for outbound emails.
+-  Drupal has a Markdown Filter Module (used for incoming email in this case), but we need to be able to convert HTML
+   back to Markdown for outbound emails.  We will use some of it for more framework.  
+   http://drupal.org/project/markdown
 
--  This is largely to keep things consistent between input and output.
+-  This is largely to keep things consistent between input and output.  We have no guarantee about how the raw text
+   will show up, but if it's applied to outbound emails from a Drupal site we will assume HTML is in there.
 
 -  Apply this filter to outbound emails in the Messaging Module or use it elsewhere if it helps.
 
@@ -28,4 +30,6 @@ Due credit to all the great people who work in the Drupal Community as well as
 John Gruber at Daring Fireball  http://daringfireball.net/projects/markdown/
 for Markdown in the first place.
 
+Anything in here is not only GPL but COMPLETELY EXPERIMENTAL and could make your favorite computer stop working...
 
+AS IS, NO WARRANTY IMPLIED.  Use it at own risk and hopefully enjoy. 

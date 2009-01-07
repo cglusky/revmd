@@ -1,5 +1,116 @@
 <?php
-function drupal_html_to_text($string, $allowed_tags = NULL) {
+
+
+
+function reverse_markdown_help($path = 'admin/help#reverse_markdown', $arg) {
+  switch ($path) {
+    case 'admin/help#reverse_markdown':
+      return t('<p>The Reverse Markdown filter tranforms XHTML into <a href="http://daringfireball.net/projects/markdown">Markdown</a>, a simple plain-text syntax.</p>');
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_filter().
+ */
+function reverse_markdown_filter($op, $delta = 0, $format = -1, $text = '') {
+  switch ($op) {
+    case 'list':
+      return array(t('Reverse Markdown'));
+    case 'description':
+      return t('Allows HTML to be transformed into Markdown, a simple plain-text syntax.');
+    case 'settings':
+      // @TODO what settings to support???
+      return _reverse_markdown_settings($format);
+    case 'process':
+      // @TODO how to process
+      return _reverse_markdown_process($text, $format);
+    default:
+      return $text;
+  }
+}
+
+/**
+ * Implementation of hook_block().
+ *
+ * Provides help for markdown syntax.
+ */
+function markdown_block($op = 'list', $delta = 0, $edit = array()) {
+  switch($op) {
+    case 'list':
+      return array('help' => array('info' => t('Markdown filter tips')));
+    case 'view':
+      switch($delta) {
+        case 'help':
+          return array(
+            'subject' => t('Reverse Markdown filter tips'),
+            // @TODO how much help to give???
+            'content' => _markdown_help_block()
+          );
+      }
+  }
+}
+
+/**
+ * Implementation of hook_filter_tips().
+ */
+function markdown_filter_tips($delta = 0, $format = -1, $long) {
+  if ($long) {
+    return t('Quick Tips:<ul>
+      <li>Two or more spaces at a line\'s end = Line break</li>
+      <li>Double returns = Paragraph</li>
+      <li>*Single asterisks* or _single underscores_ = <em>Emphasis</em></li>
+      <li>**Double** or __double__ = <strong>Strong</strong></li>
+      <li>This is [a link](http://the.link.example.com "The optional title text")</li>
+      </ul>For complete details on the Markdown syntax, see the <a href="http://daringfireball.net/projects/markdown/syntax">Markdown documentation</a> and <a href="http://michelf.com/projects/php-markdown/extra/">Markdown Extra documentation</a> for tables, footnotes, and more.');
+  }
+  else {
+    return t('You can use <a href="@filter_tips">Markdown syntax</a> to format and style the text. Also see <a href="@markdown_extra">Markdown Extra</a> for tables, footnotes, and more.', array('@filter_tips' => url('filter/tips'), '@markdown_extra' => 'http://michelf.com/projects/php-markdown/extra/'));
+  }
+}
+
+// == Internal functions =======================================================
+
+/**
+ * Provides content for the markdown help block.
+ */
+function _markdown_help_block(){
+  return '<pre>'. t("
+## Header 2 ##
+### Header 3 ###
+#### Header 4 ####
+##### Header 5 #####
+(Hashes on right are optional)
+
+Link [Drupal](http://drupal.org)
+
+Inline markup like _italics_,
+ **bold**, and `code()`.
+
+> Blockquote. Like email replies
+>> And, they can be nested
+
+* Bullet lists are easy too
+- Another one
++ Another one
+
+1. A numbered list
+2. Which is numbered
+3. With periods and a space
+
+And now some code:
+    // Code is indented text
+    is_easy() to_remember();") .'</pre>';
+}
+
+
+/**
+*  based off of Drupal's mail.inc drupal_html_to_text()
+*
+*/
+
+function _markdown_to_text($string, $allowed_tags = NULL) {
+	// @ TODO
   // Cache list of supported tags.
   static $supported_tags;
   if (empty($supported_tags)) {
