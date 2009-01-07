@@ -79,7 +79,7 @@ function _html_to_markdown($string) {
   // Cache list of supported tags.
   static $reverse_markdown_supported_tags;
   if (empty($reverse_markdown_supported_tags)) {
-    $reverse_markdown_supported_tags = array('a', 'em', 'i', 'strong', 'b', 'br', 'p', 'blockquote', 'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr');
+    $reverse_markdown_supported_tags = array('a', 'em', 'i', 'strong', 'b', 'br', 'p', 'blockquote', 'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'h1', 'h2', 'h3', 'h4', 'hr');
   }
  
   // Make sure tags, entities and attributes are well-formed and properly nested.
