@@ -145,7 +145,7 @@ function _html_to_markdown($string) {
           $indent[] = count($lists) ? ' "' : '>';
           break;
         case 'li':
-          $indent[] = is_numeric($lists[0]) ? ' '. $lists[0]++ .') ' : ' - ';
+          $indent[] = is_numeric($lists[0]) ? ' '. $lists[0]++ .'. ' : ' - ';
           break;
         case 'dd':
           $indent[] = ':    ';

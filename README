@@ -33,3 +33,42 @@ for Markdown in the first place.
 Anything in here is not only GPL but COMPLETELY EXPERIMENTAL and could make your favorite computer stop working...
 
 AS IS, NO WARRANTY IMPLIED.  Use it at own risk and hopefully enjoy. 
+
+*********************
+Every currently supported HTML tag - Need to add support for <code>
+
+<h1>Header 1</h1>
+<h2>Header 2</h2>
+<h3>Header 3</h3>
+<h4>Header 4</h4>
+
+<p>this is wrapped in paragraph tags</p>
+
+This is a break<br />This is text after break
+
+<a href="http://metanomy.org">This is a link</a>
+
+<i>This is italics</i>
+<em>This is emphasis</em>
+
+<b>This is bold</b>
+<strong>This is strong</strong>
+
+<ol>
+<li> This is ordered list 1</li>
+<li> This is ordered list 2</li>
+</ol>
+
+<ul>
+<li> This is unordered list 1</li>
+<li> This is unordered list 2</li>
+</ul>
+
+<blockquote>This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  </blockquote>
+
+<dl>
+  <dt>Coffee</dt>
+    <dd>- black hot drink</dd>
+  <dt>Milk</dt>
+    <dd>- white cold drink</dd>
+</dl>
