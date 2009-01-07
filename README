@@ -1,8 +1,8 @@
 Unless otherwise specified everything in here is GPL
 
-This is a work in progress  NOT WORKING YET
+This is a work in progress
 
-A Reverse Markdown Filter for Drupal
+A Reverse Markdown Filter for Drupal 6
 
 Use Case - Enable Two-Way PLAIN TEXT email integration and support Markdown both inbound and outbound
 
@@ -11,6 +11,7 @@ Two way email integration is possible with Drupal using
 -  Mail2Web
 -  Messaging
 -  Notification
+-  Markdown filter
 
 -  The Messaging module comes with two plain text filters, one of which uses Drupal core's
    drupal_html_to_text http://api.drupal.org/api/function/drupal_html_to_text/6 which is a close
