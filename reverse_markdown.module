@@ -1,11 +1,16 @@
 <?php
-
-
+/**
+ * @file
+ *   reverse_markdown is an input filter that converts HTML to Markdown
+ *   Most useful to outbound plain text emails
+ *   This is a combination of the Markdown filter module and the drupal_html_to_text function
+ *   @TODO To support <code> tags we need to be careful of XSS etc in case someone uses this outside of mail context
+ */
 
 function reverse_markdown_help($path = 'admin/help#reverse_markdown', $arg) {
   switch ($path) {
     case 'admin/help#reverse_markdown':
-      return t('<p>The Reverse Markdown filter tranforms XHTML into <a href="http://daringfireball.net/projects/markdown">Markdown</a>, a simple plain-text syntax.</p>');
+      return t('<p>The Reverse Markdown filter converts HTML into <a href="http://daringfireball.net/projects/markdown">Markdown</a>, a simple plain-text syntax.</p>');
       break;
   }
 }
@@ -18,122 +23,82 @@ function reverse_markdown_filter($op, $delta = 0, $format = -1, $text = '') {
     case 'list':
       return array(t('Reverse Markdown'));
     case 'description':
-      return t('Allows HTML to be transformed into Markdown, a simple plain-text syntax.');
+      return t('Converts HTML into Markdown, a simple plain-text syntax.');
     case 'settings':
-      // @TODO what settings to support???
-      return _reverse_markdown_settings($format);
+      // This filter has no user settings.
+	  break;
     case 'process':
-      // @TODO how to process
-      return _reverse_markdown_process($text, $format);
+      return _html_to_markdown($text);
     default:
       return $text;
   }
 }
 
 /**
- * Implementation of hook_block().
- *
- * Provides help for markdown syntax.
- */
-function markdown_block($op = 'list', $delta = 0, $edit = array()) {
-  switch($op) {
-    case 'list':
-      return array('help' => array('info' => t('Markdown filter tips')));
-    case 'view':
-      switch($delta) {
-        case 'help':
-          return array(
-            'subject' => t('Reverse Markdown filter tips'),
-            // @TODO how much help to give???
-            'content' => _markdown_help_block()
-          );
-      }
-  }
-}
-
-/**
  * Implementation of hook_filter_tips().
  */
-function markdown_filter_tips($delta = 0, $format = -1, $long) {
+function reverse_markdown_filter_tips($delta = 0, $format = -1, $long) {
   if ($long) {
-    return t('Quick Tips:<ul>
-      <li>Two or more spaces at a line\'s end = Line break</li>
-      <li>Double returns = Paragraph</li>
-      <li>*Single asterisks* or _single underscores_ = <em>Emphasis</em></li>
-      <li>**Double** or __double__ = <strong>Strong</strong></li>
-      <li>This is [a link](http://the.link.example.com "The optional title text")</li>
-      </ul>For complete details on the Markdown syntax, see the <a href="http://daringfireball.net/projects/markdown/syntax">Markdown documentation</a> and <a href="http://michelf.com/projects/php-markdown/extra/">Markdown Extra documentation</a> for tables, footnotes, and more.');
+    return t('Converts HTML to Markdown.  For example:<ul>
+      <li><em>Emphasis</em> = *Single asterisks*</li>
+      <li><strong>Strong</strong> = **Double asterisks** </li>
+      <li>Reference style links are footnoted</li>
+      </ul>For complete details on the Markdown syntax, see the <a href="http://daringfireball.net/projects/markdown/syntax">Markdown documentation</a> and <a href="http://michelf.com/projects/php-markdown/extra/">Markdown Extra documentation</a> for definition lists, footnotes, and more.');
   }
   else {
-    return t('You can use <a href="@filter_tips">Markdown syntax</a> to format and style the text. Also see <a href="@markdown_extra">Markdown Extra</a> for tables, footnotes, and more.', array('@filter_tips' => url('filter/tips'), '@markdown_extra' => 'http://michelf.com/projects/php-markdown/extra/'));
+    return t('You can use Reverse Markdown to convert HTML into <a href="@filter_tips">Markdown syntax</a>');
   }
 }
 
-// == Internal functions =======================================================
-
 /**
- * Provides content for the markdown help block.
+ * See also drupal_html_to_text() in mail.inc
+ * Transform an HTML string into Markdown, preserving the structure of the
+ * markup. Useful for preparing the body of a node to be sent by e-mail.
+ *
+ * The output will be suitable for use as 'format=flowed; delsp=yes' text
+ * (RFC 3676) and can be passed directly to drupal_mail() for sending.
+ *
+ * We deliberately use LF rather than CRLF, see drupal_mail().
+ *
+ * This function provides suitable alternatives for the following tags:
+ * <a> <em> <i> <strong> <b> <br> <p> <blockquote> <ul> <ol> <li> <dl> <dt>
+ * <dd> <h1> <h2> <h3> <h4> <h5> <h6> <hr>
+ * @TODO add support for <code> perhaps using fenced style ~~~
+ *
+ * @param $string
+ *   The string to be transformed.
+ * @return
+ *   The transformed string.
+ *
  */
-function _markdown_help_block(){
-  return '<pre>'. t("
-## Header 2 ##
-### Header 3 ###
-#### Header 4 ####
-##### Header 5 #####
-(Hashes on right are optional)
 
-Link [Drupal](http://drupal.org)
-
-Inline markup like _italics_,
- **bold**, and `code()`.
-
-> Blockquote. Like email replies
->> And, they can be nested
-
-* Bullet lists are easy too
-- Another one
-+ Another one
-
-1. A numbered list
-2. Which is numbered
-3. With periods and a space
-
-And now some code:
-    // Code is indented text
-    is_easy() to_remember();") .'</pre>';
-}
-
-
-/**
-*  based off of Drupal's mail.inc drupal_html_to_text()
-*
-*/
-
-function _markdown_to_text($string, $allowed_tags = NULL) {
-	// @ TODO
+function _html_to_markdown($string) {
   // Cache list of supported tags.
-  static $supported_tags;
-  if (empty($supported_tags)) {
-    $supported_tags = array('a', 'em', 'i', 'strong', 'b', 'br', 'p', 'blockquote', 'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr');
+  static $reverse_markdown_supported_tags;
+  if (empty($reverse_markdown_supported_tags)) {
+    $reverse_markdown_supported_tags = array('a', 'em', 'i', 'strong', 'b', 'br', 'p', 'blockquote', 'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr');
   }
-
-  // Make sure only supported tags are kept.
-  $allowed_tags = isset($allowed_tags) ? array_intersect($supported_tags, $allowed_tags) : $supported_tags;
-
+ 
   // Make sure tags, entities and attributes are well-formed and properly nested.
-  $string = _filter_htmlcorrector(filter_xss($string, $allowed_tags));
+  // @TODO Figure out if we want to run filter_xss on string between code tags - probably not???
+  $string = _html_to_markdown_htmlcorrector(filter_xss($string, $reverse_markdown_supported_tags));
+
+  // @TODO Find <code> tags and fence
+  // Take the string between the code tags and save it for literal output
+  // perhaps done in op prepare ??
+  // We do not want the process the string between the code tags past this point
 
   // Apply inline styles.
-  $string = preg_replace('!</?(em|i)((?> +)[^>]*)?>!i', '/', $string);
-  $string = preg_replace('!</?(strong|b)((?> +)[^>]*)?>!i', '*', $string);
+  $string = preg_replace('!</?(em|i)((?> +)[^>]*)?>!i', '*', $string);
+  $string = preg_replace('!</?(strong|b)((?> +)[^>]*)?>!i', '**', $string);
 
   // Replace inline <a> tags with the text of link and a footnote.
   // 'See <a href="http://drupal.org">the Drupal site</a>' becomes
   // 'See the Drupal site [1]' with the URL included as a footnote.
-  _drupal_html_to_mail_urls(NULL, TRUE);
+  _html_to_markdown_urls(NULL, TRUE);
   $pattern = '@(<a[^>]+?href="([^"]*)"[^>]*?>(.+?)</a>)@i';
-  $string = preg_replace_callback($pattern, '_drupal_html_to_mail_urls', $string);
-  $urls = _drupal_html_to_mail_urls();
+  $string = preg_replace_callback($pattern, '_html_to_markdown_urls', $string);
+  $urls = _html_to_markdown_urls();
   $footnotes = '';
   if (count($urls)) {
     $footnotes .= "\n";
@@ -148,7 +113,6 @@ function _markdown_to_text($string, $allowed_tags = NULL) {
   // and begins and ends with a literal (inserting $null as required).
 
   $tag = FALSE; // Odd/even counter (tag or no tag)
-  $casing = NULL; // Case conversion function
   $output = '';
   $indent = array(); // All current indentation string chunks
   $lists = array(); // Array of counters for opened lists
@@ -161,7 +125,7 @@ function _markdown_to_text($string, $allowed_tags = NULL) {
       switch ($tagname) {
         // List counters
         case 'ul':
-          array_unshift($lists, '*');
+          array_unshift($lists, '-');
           break;
         case 'ol':
           array_unshift($lists, 1);
@@ -178,16 +142,16 @@ function _markdown_to_text($string, $allowed_tags = NULL) {
           $indent[] = count($lists) ? ' "' : '>';
           break;
         case 'li':
-          $indent[] = is_numeric($lists[0]) ? ' '. $lists[0]++ .') ' : ' * ';
+          $indent[] = is_numeric($lists[0]) ? ' '. $lists[0]++ .') ' : ' - ';
           break;
         case 'dd':
-          $indent[] = '    ';
+          $indent[] = ':    ';
           break;
         case 'h3':
-          $indent[] = '.... ';
+          $indent[] = '### ';
           break;
         case 'h4':
-          $indent[] = '.. ';
+          $indent[] = '#### ';
           break;
         case '/blockquote':
           if (count($lists)) {
@@ -199,7 +163,7 @@ function _markdown_to_text($string, $allowed_tags = NULL) {
         case '/li':
         case '/dd':
           array_pop($indent);
-          break;
+          break;  // @TODO hmmm..???
         case '/h3':
         case '/h4':
           array_pop($indent);
@@ -210,18 +174,14 @@ function _markdown_to_text($string, $allowed_tags = NULL) {
 
         // Fancy headers
         case 'h1':
-          $indent[] = '======== ';
-          $casing = 'drupal_strtoupper';
+          $indent[] = '# ';
+          //$casing = 'drupal_strtoupper';
           break;
         case 'h2':
-          $indent[] = '-------- ';
-          $casing = 'drupal_strtoupper';
+          $indent[] = '## ';
           break;
         case '/h1':
         case '/h2':
-          $casing = NULL;
-          // Pad the line with dashes.
-          $output = _drupal_html_to_text_pad($output, ($tagname == '/h1') ? '=' : '-', ' ');
           array_pop($indent);
           $chunk = ''; // Ensure blank new-line.
           break;
@@ -230,11 +190,11 @@ function _markdown_to_text($string, $allowed_tags = NULL) {
         case 'hr':
           // Insert immediately.
           $output .= drupal_wrap_mail('', implode('', $indent)) ."\n";
-          $output = _drupal_html_to_text_pad($output, '-');
+          $output = _html_to_markdown_pad($output, '-');
           break;
 
         // Paragraphs and definition lists
-        case '/p':
+        case '/p': // @TODO This should probably be double new-line
         case '/dl':
           $chunk = ''; // Ensure blank new-line.
           break;
@@ -251,14 +211,10 @@ function _markdown_to_text($string, $allowed_tags = NULL) {
 
     // See if there is something waiting to be output.
     if (isset($chunk)) {
-      // Apply any necessary case conversion.
-      if (isset($casing)) {
-        $chunk = $casing($chunk);
-      }
       // Format it and apply the current indentation.
       $output .= drupal_wrap_mail($chunk, implode('', $indent)) ."\n";
       // Remove non-quotation markers from indentation.
-      $indent = array_map('_drupal_html_to_text_clean', $indent);
+      $indent = array_map('_html_to_markdown_clean', $indent);
     }
 
     $tag = !$tag;
@@ -266,3 +222,140 @@ function _markdown_to_text($string, $allowed_tags = NULL) {
 
   return $output . $footnotes;
 }
+
+/**
+ * Helper function for _html_to_markdown().
+ * From or mail.inc.
+ *
+ * Keeps track of URLs and replaces them with placeholder tokens.
+ */
+function _html_to_markdown_urls($match = NULL, $reset = FALSE) {
+  global $base_url, $base_path;
+  static $urls = array(), $regexp;
+
+  if ($reset) {
+    // Reset internal URL list.
+    $urls = array();
+  }
+  else {
+    if (empty($regexp)) {
+      $regexp = '@^'. preg_quote($base_path, '@') .'@';
+    }
+    if ($match) {
+      list(, , $url, $label) = $match;
+      // Ensure all URLs are absolute.
+      $urls[] = strpos($url, '://') ? $url : preg_replace($regexp, $base_url .'/', $url);
+      return $label .' ['. count($urls) .']';
+    }
+  }
+  return $urls;
+}
+
+/**
+ * Helper function for _html_to_markdown().
+ * From mail.inc.
+ *
+ * Replace all non-quotation markers ">" from a given piece of indentation with spaces.
+ */
+function _html_to_markdown_clean($indent) {
+  return preg_replace('/[^>]/', ' ', $indent);
+}
+
+/**
+ * Helper function for _html_to_markdown()
+ * From mail.inc.
+ *
+ * Pad the last line with the given character.
+ */
+function _html_to_markdown_pad($text, $pad, $prefix = '') {
+  // Remove last line break.
+  $text = substr($text, 0, -1);
+  // Calculate needed padding space and add it.
+  if (($p = strrpos($text, "\n")) === FALSE) {
+    $p = -1;
+  }
+  $n = max(0, 79 - (strlen($text) - $p));
+  // Add prefix and padding, and restore linebreak.
+  return $text . $prefix . str_repeat($pad, $n - strlen($prefix)) ."\n";
+}
+
+/**
+ *  Helper funtion for _html_to_markdown
+ *  From filter.module
+ *  @param $text
+ *    The text to be filtered
+ *  @return $output
+ *    The filtered output
+ */
+
+function _html_to_markdown_htmlcorrector($text) {
+  // Prepare tag lists.
+  static $no_nesting, $single_use;
+  if (!isset($no_nesting)) {
+    // Tags which cannot be nested but are typically left unclosed.
+    $no_nesting = drupal_map_assoc(array('li', 'p'));
+
+    // Single use tags in HTML4
+    $single_use = drupal_map_assoc(array('base', 'meta', 'link', 'hr', 'br', 'param', 'img', 'area', 'input', 'col', 'frame'));
+  }
+
+  // Properly entify angles.
+  $text = preg_replace('!<([^a-zA-Z/])!', '&lt;\1', $text);
+
+  // Split tags from text.
+  $split = preg_split('/<([^>]+?)>/', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+  // Note: PHP ensures the array consists of alternating delimiters and literals
+  // and begins and ends with a literal (inserting $null as required).
+
+  $tag = false; // Odd/even counter. Tag or no tag.
+  $stack = array();
+  $output = '';
+  foreach ($split as $value) {
+    // Process HTML tags.
+    if ($tag) {
+      list($tagname) = explode(' ', strtolower($value), 2);
+      // Closing tag
+      if ($tagname{0} == '/') {
+        $tagname = substr($tagname, 1);
+        // Discard XHTML closing tags for single use tags.
+        if (!isset($single_use[$tagname])) {
+          // See if we possibly have a matching opening tag on the stack.
+          if (in_array($tagname, $stack)) {
+            // Close other tags lingering first.
+            do {
+              $output .= '</'. $stack[0] .'>';
+            } while (array_shift($stack) != $tagname);
+          }
+          // Otherwise, discard it.
+        }
+      }
+      // Opening tag
+      else {
+        // See if we have an identical 'no nesting' tag already open and close it if found.
+        if (count($stack) && ($stack[0] == $tagname) && isset($no_nesting[$stack[0]])) {
+          $output .= '</'. array_shift($stack) .'>';
+        }
+        // Push non-single-use tags onto the stack
+        if (!isset($single_use[$tagname])) {
+          array_unshift($stack, $tagname);
+        }
+        // Add trailing slash to single-use tags as per X(HT)ML.
+        else {
+          $value = rtrim($value, ' /') .' /';
+        }
+        $output .= '<'. $value .'>';
+      }
+    }
+    else {
+      // Passthrough all text.
+      $output .= $value;
+    }
+    $tag = !$tag;
+  }
+  // Close remaining tags.
+  while (count($stack) > 0) {
+    $output .= '</'. array_shift($stack) .'>';
+  }
+  return $output;
+}
+
