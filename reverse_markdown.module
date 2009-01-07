@@ -29,7 +29,10 @@ function reverse_markdown_filter($op, $delta = 0, $format = -1, $text = '') {
 	  break;
     case 'process':
       return _html_to_markdown($text);
-    default:
+    case 'no cache':
+	  return TRUE; // @TODO set this to False when done testing
+	  break;
+	default:
       return $text;
   }
 }
