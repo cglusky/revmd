@@ -362,3 +362,28 @@ function _html_to_markdown_htmlcorrector($text) {
   return $output;
 }
 
+/**
+ * 
+ *
+ * @param $string 
+ *  The string with tags
+ *
+ * @param $tagname the name of the tag
+ *
+ * @return $matches string between tags
+ * and string with placeholders
+ *
+ */
+
+function _html_to_markdown_find_replace($string, $tagname)
+{
+   $pattern = "/<$tagname>(.*?)<\/$tagname>/";  // Find everything between the tags 
+   preg_match_all($pattern, $string, $matches); // Save it in the $matches array
+   if ($matches === FALSE) {
+     // Find and replace with place holders
+     $string = preg_replace($pattern, '#P_l-A_c-E_h-O_l-D_e-R#', $string)
+   }   
+
+	return $matches;
+}
+

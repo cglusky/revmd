@@ -1,4 +1,4 @@
-Every currently supported HTML tag
+Currently supported HTML tags
 
 <h1>Header 1</h1>
 <h2>Header 2</h2>
@@ -29,9 +29,10 @@ This is a break<br />This is text after break
 
 <blockquote>This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  This is a blockquote.  </blockquote>
 
+This is a definition list:
 <dl>
   <dt>Coffee</dt>
-    <dd>- black hot drink</dd>
+    <dd>black hot drink</dd>
   <dt>Milk</dt>
-    <dd>- white cold drink</dd>
+    <dd>white cold drink</dd>
 </dl>
