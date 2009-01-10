@@ -74,22 +74,26 @@ function reverse_markdown_filter_tips($delta = 0, $format = -1, $long) {
  *   The transformed string.
  *
  */
-
 function _html_to_markdown($string) {
   // Cache list of supported tags.
   static $reverse_markdown_supported_tags;
   if (empty($reverse_markdown_supported_tags)) {
     $reverse_markdown_supported_tags = array('a', 'em', 'i', 'strong', 'b', 'br', 'p', 'blockquote', 'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'h1', 'h2', 'h3', 'h4', 'hr');
   }
- 
+  
+  // Find <code> tags and fence
+  // Take the string between the code tags and save it for literal output after other tags are processsed
+  // This string is not proceessed for XSS!!!
+  // It will be reinserted as is later
+  $pattern = '/<code>(.*?)<\/code>/i';  // Find everything between the tags 
+  $replace = "\n _P_l_A_c_E_h_O_l_D_e_R_ \n";  
+  $code = _html_to_markdown_match_replace($pattern, $string, $replace));
+  if (isset($code)) {
+    $string = $code['string']; // This will be temp until we get done converting rest of string
+  }  
+  
   // Make sure tags, entities and attributes are well-formed and properly nested.
-  // @TODO Figure out if we want to run filter_xss on string between code tags - probably not???
   $string = _html_to_markdown_htmlcorrector(filter_xss($string, $reverse_markdown_supported_tags));
-
-  // @TODO Find <code> tags and fence
-  // Take the string between the code tags and save it for literal output
-  // perhaps done in op prepare ??
-  // We do not want the process the string between the code tags past this point
 
   // Apply inline styles.
   $string = preg_replace('!</?(em|i)((?> +)[^>]*)?>!i', '*', $string);
@@ -222,13 +226,22 @@ function _html_to_markdown($string) {
 
     $tag = !$tag;
   }
-
+  
+  if (isset($code)) { // We have <code> to reinsert
+    // Find placeholder and add fence before and after reinserted code
+    // This string is not proceessed for XSS!!!
+    $pattern = '/_P_l_A_c_E_h_O_l_D_e_R_/';   
+    $replace = "\n ~~~ \n". $code['substring'] ."\n ~~~ \n";  
+    $insert = _html_to_markdown_match_replace($pattern, $output, $replace));
+    $output = $insert['string']; // This will be temp until we get done converting rest of string
+  }
+  
   return $output . $footnotes;
 }
 
 /**
  * Helper function for _html_to_markdown().
- * From or mail.inc.
+ * From mail.inc.
  *
  * Keeps track of URLs and replaces them with placeholder tokens.
  */
@@ -255,10 +268,33 @@ function _html_to_markdown_urls($match = NULL, $reset = FALSE) {
 }
 
 /**
- * Helper function for _html_to_markdown().
- * From mail.inc.
+ *  Helper function that finds string between tags.
  *
- * Replace all non-quotation markers ">" from a given piece of indentation with spaces.
+ * @param $string string to search
+ *
+ * @param $pattern pattern to match
+ *
+ * @param $replace string to use as replacement
+ *
+ * @return $store an array with our string and substring
+ *   $store['string'] the string after we $replace 
+ *   $store['matches'] the matches array
+ *
+ */
+function _html_to_markdown_match_replace($pattern, $string, $replace) {
+  $store = array(); // an associative array to hold our results.
+  preg_match_all($pattern, $string, $matches); // Save it in the $matches array
+  if ($matches !== FALSE) {
+    // Find and replace with placeholder(s)
+    $store['string'] = preg_replace($pattern, $replace, $string);
+    $store['matches'] = $matches;  
+  }
+  return $store;
+}
+
+/**
+ * Helper function to find and replace
+ * From mail.inc
  */
 function _html_to_markdown_clean($indent) {
   return preg_replace('/[^>]/', ' ', $indent);
@@ -267,7 +303,6 @@ function _html_to_markdown_clean($indent) {
 /**
  * Helper function for _html_to_markdown()
  * From mail.inc.
- *
  * Pad the last line with the given character.
  */
 function _html_to_markdown_pad($text, $pad, $prefix = '') {
@@ -361,29 +396,3 @@ function _html_to_markdown_htmlcorrector($text) {
   }
   return $output;
 }
-
-/**
- * 
- *
- * @param $string 
- *  The string with tags
- *
- * @param $tagname the name of the tag
- *
- * @return $matches string between tags
- * and string with placeholders
- *
- */
-
-function _html_to_markdown_find_replace($string, $tagname)
-{
-   $pattern = "/<$tagname>(.*?)<\/$tagname>/";  // Find everything between the tags 
-   preg_match_all($pattern, $string, $matches); // Save it in the $matches array
-   if ($matches === FALSE) {
-     // Find and replace with place holders
-     $string = preg_replace($pattern, '#P_l-A_c-E_h-O_l-D_e-R#', $string)
-   }   
-
-	return $matches;
-}
-
