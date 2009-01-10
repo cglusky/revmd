@@ -231,7 +231,7 @@ function _html_to_markdown($string) {
     // Find placeholder and add fence before and after reinserted code
     // This string is not proceessed for XSS!!!
     $pattern = '/_P_l_A_c_E_h_O_l_D_e_R_/';   
-    $replace = "\n ~~~ \n". $code['substring'] ."\n ~~~ \n";  
+    $replace = "~~~ \n\n". $code['matches'][1] ."\n\n ~~~ \n";
     $insert = _html_to_markdown_match_replace($pattern, $output, $replace));
     $output = $insert['string']; // This will be temp until we get done converting rest of string
   }
