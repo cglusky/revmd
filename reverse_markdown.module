@@ -78,19 +78,19 @@ function _html_to_markdown($string) {
   // Cache list of supported tags.
   static $reverse_markdown_supported_tags;
   if (empty($reverse_markdown_supported_tags)) {
-    $reverse_markdown_supported_tags = array('a', 'em', 'i', 'strong', 'b', 'br', 'p', 'blockquote', 'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'h1', 'h2', 'h3', 'h4', 'hr');
+    $reverse_markdown_supported_tags = array('code','a', 'em', 'i', 'strong', 'b', 'br', 'p', 'blockquote', 'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'h1', 'h2', 'h3', 'h4', 'hr');
   }
   
   // Find <code> tags and fence
   // Take the string between the code tags and save it for literal output after other tags are processsed
   // This string is not proceessed for XSS!!!
   // It will be reinserted as is later
-  $pattern = '/<code>(.*?)<\/code>/i';  // Find everything between the tags 
-  $replace = "\n _P_l_A_c_E_h_O_l_D_e_R_ \n";  
-  $code = _html_to_markdown_match_replace($pattern, $string, $replace));
-  if (isset($code)) {
-    $string = $code['string']; // This will be temp until we get done converting rest of string
-  }  
+  // $pattern = '/<code>(.*?)<\/code>/i';  // Find everything between the tags 
+  // $replace = '_P_l_A_c_E_h_O_l_D_e_R_';  
+  // $code = _html_to_markdown_match_replace($pattern, $string, $replace);
+  // if (isset($code)) {
+  //  $string = $code['string']; // This will be temp until we get done converting rest of string
+  // }  
   
   // Make sure tags, entities and attributes are well-formed and properly nested.
   $string = _html_to_markdown_htmlcorrector(filter_xss($string, $reverse_markdown_supported_tags));
@@ -98,6 +98,8 @@ function _html_to_markdown($string) {
   // Apply inline styles.
   $string = preg_replace('!</?(em|i)((?> +)[^>]*)?>!i', '*', $string);
   $string = preg_replace('!</?(strong|b)((?> +)[^>]*)?>!i', '**', $string);
+  // Simple code handling
+  $string = preg_replace('!</?(code)((?> +)[^>]*)?>!i', '~~~', $string);
 
   // Replace inline <a> tags with the text of link and a footnote.
   // 'See <a href="http://drupal.org">the Drupal site</a>' becomes
@@ -227,14 +229,14 @@ function _html_to_markdown($string) {
     $tag = !$tag;
   }
   
-  if (isset($code)) { // We have <code> to reinsert
+//  if (isset($code)) { // We have <code> to reinsert
     // Find placeholder and add fence before and after reinserted code
     // This string is not proceessed for XSS!!!
-    $pattern = '/_P_l_A_c_E_h_O_l_D_e_R_/';   
-    $replace = "~~~ \n\n". $code['matches'][1] ."\n\n ~~~ \n";
-    $insert = _html_to_markdown_match_replace($pattern, $output, $replace));
-    $output = $insert['string']; // This will be temp until we get done converting rest of string
-  }
+//    $pattern = '/_P_l_A_c_E_h_O_l_D_e_R_/';   
+//    $replace = "~~~ \n\n". $code['matches'][1] ."\n\n ~~~ \n";
+//    $insert = _html_to_markdown_match_replace($pattern, $output, $replace);
+//    $output = $insert['string']; // This will be temp until we get done converting rest of string
+//  }
   
   return $output . $footnotes;
 }
@@ -287,7 +289,7 @@ function _html_to_markdown_match_replace($pattern, $string, $replace) {
   if ($matches !== FALSE) {
     // Find and replace with placeholder(s)
     $store['string'] = preg_replace($pattern, $replace, $string);
-    $store['matches'] = $matches;  
+    $store['matches'][] = $matches;  
   }
   return $store;
 }

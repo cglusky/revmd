@@ -5,6 +5,17 @@ Currently supported HTML tags
 <h3>Header 3</h3>
 <h4>Header 4</h4>
 
+<code>
+<?PHP 
+   if ($this) {
+     $that;
+  } 
+  else {
+    $other;
+ }
+?>
+</code>
+
 <p>this is wrapped in paragraph tags</p>
 
 This is a break<br />This is text after break
