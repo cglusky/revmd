@@ -76,3 +76,15 @@ This is a definition list:
   <dt>Milk</dt>
     <dd>white cold drink</dd>
 </dl>
+
+This is a code block (limited support - works best if this is also wrapped in a pre tag)
+<code>
+<?php 
+   if ($this) {
+     $that;
+  } 
+  else {
+    $other;
+ }
+?>
+</code>

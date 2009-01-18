@@ -85,12 +85,15 @@ function _html_to_markdown($string) {
   // Take the string between the code tags and save it for literal output after other tags are processsed
   // This string is not proceessed for XSS!!!
   // It will be reinserted as is later
-  // $pattern = '/<code>(.*?)<\/code>/i';  // Find everything between the tags 
-  // $replace = '_P_l_A_c_E_h_O_l_D_e_R_';  
-  // $code = _html_to_markdown_match_replace($pattern, $string, $replace);
-  // if (isset($code)) {
+  //$pattern = '/<code>(.*?)<\/code>/is';  // Find everything between the tags 
+  //$replace = '_P_l_A_c_E_h_O_l_D_e_R_';  
+  //$code = _html_to_markdown_match_replace($pattern, $string, $replace);
+  //if (isset($code)) {
   //  $string = $code['string']; // This will be temp until we get done converting rest of string
-  // }  
+  //}
+  // @TODO Temp <code> support
+  // Simple code handling
+  $string = preg_replace('!</?(code)((?> +)[^>]*)?>!i', '~~~', $string);
   
   // Make sure tags, entities and attributes are well-formed and properly nested.
   $string = _html_to_markdown_htmlcorrector(filter_xss($string, $reverse_markdown_supported_tags));
@@ -98,8 +101,6 @@ function _html_to_markdown($string) {
   // Apply inline styles.
   $string = preg_replace('!</?(em|i)((?> +)[^>]*)?>!i', '*', $string);
   $string = preg_replace('!</?(strong|b)((?> +)[^>]*)?>!i', '**', $string);
-  // Simple code handling
-  $string = preg_replace('!</?(code)((?> +)[^>]*)?>!i', '~~~', $string);
 
   // Replace inline <a> tags with the text of link and a footnote.
   // 'See <a href="http://drupal.org">the Drupal site</a>' becomes
@@ -229,14 +230,16 @@ function _html_to_markdown($string) {
     $tag = !$tag;
   }
   
-//  if (isset($code)) { // We have <code> to reinsert
+  // @TODO support multiple matches.
+  //if (isset($code)) { // We have <code> to reinsert
     // Find placeholder and add fence before and after reinserted code
     // This string is not proceessed for XSS!!!
-//    $pattern = '/_P_l_A_c_E_h_O_l_D_e_R_/';   
-//    $replace = "~~~ \n\n". $code['matches'][1] ."\n\n ~~~ \n";
-//    $insert = _html_to_markdown_match_replace($pattern, $output, $replace);
-//    $output = $insert['string']; // This will be temp until we get done converting rest of string
-//  }
+  //  $pattern = '/_P_l_A_c_E_h_O_l_D_e_R_/s';
+  //  $code = $code['matches'][1][0];  
+  //  $replace = "~~~ \n\n". $code . "\n\n ~~~ \n";
+  //  $insert = _html_to_markdown_match_replace($pattern, $output, $replace);
+  //  $output = $insert['string']; // This will be temp until we get done converting rest of string
+ // }
   
   return $output . $footnotes;
 }
@@ -289,8 +292,9 @@ function _html_to_markdown_match_replace($pattern, $string, $replace) {
   if ($matches !== FALSE) {
     // Find and replace with placeholder(s)
     $store['string'] = preg_replace($pattern, $replace, $string);
-    $store['matches'][] = $matches;  
+    $store['matches'] = $matches; // $store = array ('matches' => array ([0] => array [0]
   }
+  //drupal_set_message('<pre>'. print_r($store['matches'], TRUE) .'</pre>');
   return $store;
 }
 
