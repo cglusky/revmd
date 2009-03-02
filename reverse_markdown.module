@@ -381,7 +381,7 @@ function _html_to_markdown_find_replace($string, $tagname)
    preg_match_all($pattern, $string, $matches); // Save it in the $matches array
    if ($matches === FALSE) {
      // Find and replace with place holders
-     $string = preg_replace($pattern, '#P_l-A_c-E_h-O_l-D_e-R#', $string)
+     $string = preg_replace($pattern, '#P_l-A_c-E_h-O_l-D_e-R#', $string);
    }   
 
 	return $matches;
