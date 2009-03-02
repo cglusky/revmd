@@ -4,7 +4,7 @@
  *   reverse_markdown is an input filter that converts HTML to Markdown
  *   Most useful to outbound plain text emails
  *   This is a combination of the Markdown filter module and the drupal_html_to_text function
- *   @TODO To support <code> tags we need to be careful of XSS etc in case someone uses this outside of mail context
+ *   @TODO Improve support of <code> tags - need to be careful of XSS etc in case someone uses this outside of mail context
  */
 
 function reverse_markdown_help($path = 'admin/help#reverse_markdown', $arg) {
